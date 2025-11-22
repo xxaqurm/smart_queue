@@ -5,76 +5,8 @@ import { useEvents } from '../hooks/useEvents';
 export default function AllEvents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-
-  // Расширенный список мероприятий
-  const events = [
-    {
-      id: 1,
-      title: "Хакатон по веб-разработке",
-      date: "15 декабря 2024",
-      time: "10:00 - 18:00",
-      location: "Главный корпус, ауд. 301",
-      organizer: "IT-клуб НГТУ",
-      participants: 24,
-      maxParticipants: 30,
-      category: "Технологии"
-    },
-    {
-      id: 2,
-      title: "Мастер-класс по публичным выступлениям",
-      date: "18 декабря 2024", 
-      time: "15:00 - 17:00",
-      location: "Библиотека, конференц-зал",
-      organizer: "Клуб ораторского искусства",
-      participants: 15,
-      maxParticipants: 25,
-      category: "Личностный рост"
-    },
-    {
-      id: 3,
-      title: "Турнир по настольным играм",
-      date: "20 декабря 2024",
-      time: "18:00 - 22:00",
-      location: "Студенческий клуб",
-      organizer: "Клуб настольных игр",
-      participants: 40,
-      maxParticipants: 50,
-      category: "Развлечения"
-    },
-    {
-      id: 4,
-      title: "Воркшоп по машинному обучению",
-      date: "22 декабря 2024",
-      time: "14:00 - 16:00",
-      location: "Корпус 2, ауд. 205",
-      organizer: "AI Lab НГТУ",
-      participants: 18,
-      maxParticipants: 20,
-      category: "Технологии"
-    },
-    {
-      id: 5,
-      title: "Фотовыставка 'Город в объективе'",
-      date: "25 декабря 2024",
-      time: "12:00 - 19:00",
-      location: "Выставочный зал",
-      organizer: "Фотоклуб НГТУ",
-      participants: 35,
-      maxParticipants: 100,
-      category: "Искусство"
-    },
-    {
-      id: 6,
-      title: "Семинар по карьерному росту",
-      date: "28 декабря 2024",
-      time: "11:00 - 13:00",
-      location: "Карьерный центр",
-      organizer: "Центр развития карьеры",
-      participants: 22,
-      maxParticipants: 30,
-      category: "Образование"
-    }
-  ];
+  
+  const { events, loading } = useEvents(); // ← используем данные из хука
 
   // Фильтрация мероприятий
   const filteredEvents = events.filter(event => {
@@ -87,7 +19,6 @@ export default function AllEvents() {
   // Уникальные категории для фильтра
   const categories = [...new Set(events.map(event => event.category))];
 
-  const { event, loading } = useEvents();
   if (loading) return <div>Загрузка...</div>;
 
   return (

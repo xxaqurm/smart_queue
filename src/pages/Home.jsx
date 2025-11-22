@@ -10,7 +10,7 @@ export default function Home() {
         {/* Приветствие */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Мероприятия НГТУ
+            Мероприятия
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Открывай новые возможности, находи единомышленников и участвуй в событиях университета

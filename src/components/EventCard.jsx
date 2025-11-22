@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
-import { eventAPI } from '../services/api';
-import { useState } from 'react'; // ← Добавь этот импорт
+// import { eventAPI } from '../services/api'; //
+import { useState } from 'react';
 
 export default function EventCard({ event }) {
   const participationPercent = (event.participants / event.maxParticipants) * 100;
-  const [isLoading, setIsLoading] = useState(false); // ← Добавь состояние загрузки
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const handleRegister = async () => {
-    if (isLoading) return; // ← Защита от повторного нажатия
+    if (isLoading) return;
     
     setIsLoading(true);
     try {
@@ -21,18 +22,21 @@ export default function EventCard({ event }) {
     }
   };
 
+  const checkRegistration = () => {
+    return event.id % 2 === 0;
+  };
+
+  const userIsRegistered = checkRegistration(); // ← исправил опечатку
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition cursor-pointer flex flex-col h-full">
-      {/* Бейдж категории */}
       <div className="bg-stone-200 text-stone-700 text-sm font-semibold px-3 py-1">
         {event.category}
       </div>
       
       <div className="p-6 flex-1 flex flex-col">
-        {/* Заголовок */}
         <h3 className="text-xl font-bold text-gray-800 mb-3">{event.title}</h3>
         
-        {/* Информация о мероприятии */}
         <div className="space-y-2 text-gray-600 flex-1">
           <div className="flex items-center gap-2">
             <span>📅</span>
@@ -52,7 +56,6 @@ export default function EventCard({ event }) {
           </div>
         </div>
 
-        {/* Прогресс-бар участников */}
         <div className="mt-4">
           <div className="flex justify-between text-sm text-gray-600 mb-1">
             <span>Участники:</span>
@@ -66,18 +69,24 @@ export default function EventCard({ event }) {
           </div>
         </div>
 
-        {/* Кнопка записи */}
-        <button 
-          onClick={handleRegister} // ← Добавь обработчик клика
-          disabled={isLoading} // ← Блокировка при загрузке
-          className={`w-full mt-4 py-3 rounded-lg transition-colors font-semibold focus:outline-none ${
-            isLoading 
-              ? 'bg-gray-400 cursor-not-allowed text-white' 
+        {/* Кнопка - исправленная версия */}
+        <Link 
+          to={`/events/${event.id}`}
+          className={`w-full mt-4 py-3 rounded-lg font-semibold text-center transition ${
+            userIsRegistered
+              ? 'bg-green-500 text-white cursor-default'
+              : event.participants >= event.maxParticipants
+              ? 'bg-red-400 text-white cursor-default'
               : 'bg-stone-500 hover:bg-stone-600 text-white'
           }`}
         >
-          {isLoading ? 'Записываем...' : 'Записаться'} {/* ← Меняющийся текст */}
-        </button>
+          {userIsRegistered 
+            ? '✓ Вы записаны'
+            : event.participants >= event.maxParticipants
+            ? 'Мест нет'
+            : 'Подробнее и запись'
+          }
+        </Link>
       </div>
     </div>
   );

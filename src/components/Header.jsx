@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-// import { useAuth } from '../context/AuthContext'; // ← ЗАКОММЕНТИРУЙ пока
+// import { useAuth } from '../context/AuthContext'; //
 
 export default function Header() {
-  // const { user, logout } = useAuth(); // ← ЗАКОММЕНТИРУЙ пока
+  // const { user, logout } = useAuth(); //
 
   // const handleLogout = () => {
   //   logout();
@@ -49,7 +49,7 @@ export default function Header() {
                 <Link to="/login" className="bg-stone-600 text-white px-6 py-2 rounded-lg hover:bg-stone-700 transition-colors font-semibold outline-none">
                   Войти
                 </Link>
-                <Link to="/register" className="border border-stone-600 text-stone-600 px-6 py-2 rounded-lg hover:bg-stone-50 transition-colors font-semibold outline-none">
+                <Link to="/register" className="border border-stone-400 text-stone-600 px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors font-semibold outline-none">
                   Регистрация
                 </Link>
               </div>
