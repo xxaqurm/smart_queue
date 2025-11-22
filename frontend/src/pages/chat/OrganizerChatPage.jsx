@@ -111,26 +111,26 @@ export default function OrganizerChatPage() {
   };
 
   return (
-    <div className="organizer-chat-page">
+    <div className="organizer-chat-page text-stone-800">
       <div className="chat-header">
         <h1>Управление чатами</h1>
         <p>Отвечайте на вопросы участников</p>
       </div>
 
-      <div className="organizer-chat-layout">
+      <div className="organizer-chat-layout text-stone-800">
         <ChatSidebar 
           events={events}
           activeEvent={activeEvent}
           onEventSelect={handleEventSelect}
         />
         
-        <div className="chat-main">
+        <div className="chat-main text-stone-800">
           {activeEvent ? (
             <>
-              <div className="event-header">
+              <div className="event-header font-semibold">
                 <h2>{activeEvent.name}</h2>
                 {activeEvent.unreadCount > 0 && (
-                  <span className="unread-badge">{activeEvent.unreadCount} новых</span>
+                  <span className="unread-badge font-semibold">{activeEvent.unreadCount} новых</span>
                 )}
               </div>
               
