@@ -72,3 +72,12 @@ button:focus-visible {
 html, body {
   @apply w-full h-full;
 }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: inherit;
+}
