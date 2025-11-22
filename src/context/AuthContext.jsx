@@ -1,13 +1,11 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-// import { authAPI } from '../services/api'; // ← пока закомментируй
+import { authAPI } from '../services/api'; // можно оставить на будущее
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
 
@@ -21,64 +19,45 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        // Временная заглушка - можно оставить как админ по умолчанию
-        // или определить роль из localStorage
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-        } else {
-          const mockUser = {
-            id: 1,
-            name: 'Администратор',
-            email: 'admin@eventhub.ru',
-            role: 'admin'
-          };
-          setUser(mockUser);
-        }
-      } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+    try {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // 🔹 Временный тестовый login
   const login = async (credentials) => {
-    // Определяем роль по email
-    let userRole = 'user';
-    let userName = 'Участник EventHub';
-    
+    let mockUser;
     if (credentials.email === 'admin@eventhub.ru') {
-      userRole = 'admin';
-      userName = 'Организатор EventHub';
+      mockUser = { id: 1, name: 'Админ', email: credentials.email, role: 'admin' };
+    } else {
+      mockUser = { id: 2, name: 'Участник', email: credentials.email, role: 'user' };
     }
-
-    const mockUser = {
-      id: userRole === 'admin' ? 1 : 2,
-      name: userName,
-      email: credentials.email,
-      role: userRole
-    };
     const mockToken = 'mock-jwt-token';
-    
     localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser)); // Сохраняем пользователя
+    localStorage.setItem('user', JSON.stringify(mockUser));
     setUser(mockUser);
     return mockUser;
   };
 
   const register = async (userData) => {
-    // Все новые пользователи - обычные участники
-    const mockUser = {
-      id: Date.now(),
-      name: userData.name,
-      email: userData.email,
-      role: 'user'
-    };
+    const mockUser = { id: Date.now(), name: userData.name, email: userData.email, role: 'user' };
     const mockToken = 'mock-jwt-token';
-    
     localStorage.setItem('token', mockToken);
     localStorage.setItem('user', JSON.stringify(mockUser));
     setUser(mockUser);
@@ -91,16 +70,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    loading
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

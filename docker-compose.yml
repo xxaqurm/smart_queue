@@ -9,21 +9,35 @@ services:
       - .:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=http://localhost:8000/api
     command: npm run dev -- --host
+    depends_on:
+      - backend
 
   backend:
-    image: node:18-alpine
-    working_dir: /app
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "8000:8000"
     volumes:
       - ./backend:/app
-    command: sh -c "cd backend && npm install && npm start"
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     depends_on:
-      - database
+      - db
 
-  database:
-    image: nouchka/sqlite3
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: eventhub
+      POSTGRES_USER: eventhub_user
+      POSTGRES_PASSWORD: eventhub_pass
+    ports:
+      - "5432:5432"
     volumes:
-      - ./data:/data
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
