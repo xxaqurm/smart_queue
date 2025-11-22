@@ -90,9 +90,9 @@
 }
 
 .chat-item.active {
-  background: #007bff;
+  background: #ffff71;
   color: white;
-  border-color: #007bff;
+  border-color: #fff701;
 }
 
 .chat-item.unread {
@@ -149,13 +149,13 @@
 }
 
 .message.participant {
-  background: #e3f2fd;
+  background: #fff838;
   margin-right: auto;
   border-bottom-left-radius: 4px;
 }
 
 .message.organizer {
-  background: #fce4ec;
+  background: #c6c6c6;
   margin-left: auto;
   border-bottom-right-radius: 4px;
 }
@@ -194,7 +194,7 @@
 }
 
 .message-input:focus {
-  border-color: #007bff;
+  border-color: #fcef05;
 }
 
 .send-button {

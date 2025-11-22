@@ -7,9 +7,9 @@ export default function MessageList({ messages, currentUserType }) {
   };
 
   return (
-    <div className="messages-list">
+    <div className="messages-list text-stone-800">
       {messages.length === 0 ? (
-        <div className="no-messages">
+        <div className="no-messages text-stone-800">
           <p>Пока нет сообщений. Начните общение!</p>
         </div>
       ) : (
@@ -18,8 +18,8 @@ export default function MessageList({ messages, currentUserType }) {
             key={message.id}
             className={`message ${message.sender}`}
           >
-            <p className="message-content">{message.text}</p>
-            <div className="message-time">
+            <p className="message-content text-stone-800">{message.text}</p>
+            <div className="message-time text-stone-800">
               {formatTime(message.timestamp)}
             </div>
           </div>
