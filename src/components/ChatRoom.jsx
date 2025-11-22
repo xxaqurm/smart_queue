@@ -16,7 +16,7 @@ export default function ChatRoom({ messages, onSendMessage, currentUserType }) {
   };
 
   return (
-    <div className="chat-room text-stone-800">
+    <div className="chat-room">
       <div className="messages-container text-stone-800">
         <MessageList 
           messages={messages} 

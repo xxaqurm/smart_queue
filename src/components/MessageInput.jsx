@@ -12,8 +12,8 @@ export default function MessageInput({ onSendMessage }) {
   };
 
   return (
-    <div className="message-input-container">
-      <form onSubmit={handleSubmit} className="message-input-form">
+    <div className="message-input-container bg-white">
+      <form onSubmit={handleSubmit} className="message-input-form bg-white">
         <input
           type="text"
           value={message}

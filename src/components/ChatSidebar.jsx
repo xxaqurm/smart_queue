@@ -12,10 +12,10 @@ export default function ChatSidebar({ events, activeEvent, onEventSelect }) {
             <div className="chat-item-header text-stone-800">
               <div className="chat-item-name text-stone-800">{event.name}</div>
               {event.unreadCount > 0 && (
-                <div className="chat-item-unread">{event.unreadCount}</div>
+                <div className="chat-item-unread text-stone-800">{event.unreadCount}</div>
               )}
             </div>
-            <div className="chat-item-preview text-stone-800">
+            <div className="chat-item-preview">
               {event.lastMessage || 'Нет сообщений'}
             </div>
           </div>

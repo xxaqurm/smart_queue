@@ -79,7 +79,7 @@
   padding: 12px;
   margin-bottom: 8px;
   background: white;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #585555;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
@@ -91,7 +91,7 @@
 
 .chat-item.active {
   background: #ffff71;
-  color: white;
+  color: rgb(38, 37, 37);
   border-color: #fff701;
 }
 
@@ -176,7 +176,7 @@
 .message-input-container {
   padding: 20px;
   border-top: 1px solid #e0e0e0;
-  background: white;
+  background: rgb(255, 255, 255);
 }
 
 .message-input-form {
@@ -187,20 +187,27 @@
 .message-input {
   flex: 1;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #fbbf24; /* Желтая рамка */
   border-radius: 20px;
   outline: none;
   font-size: 14px;
+  background: rgb(255, 233, 93); /* Твой желтый цвет */
+  color: #78350f; /* Темный цвет для текста */
+}
+
+.message-input::placeholder {
+  color: #a16207; /* Цвет текста placeholder */
 }
 
 .message-input:focus {
-  border-color: #fcef05;
+  border-color: #d97706;
+  background: rgb(255, 240, 150); /* Чуть светлее при фокусе */
 }
 
 .send-button {
   padding: 12px 24px;
-  background: #007bff;
-  color: white;
+  background: #f6ef0c;
+  color: rgb(68, 66, 66);
   border: none;
   border-radius: 20px;
   cursor: pointer;
@@ -209,7 +216,7 @@
 }
 
 .send-button:hover {
-  background: #0056b3;
+  background: #9d8b00;
 }
 
 .send-button:disabled {

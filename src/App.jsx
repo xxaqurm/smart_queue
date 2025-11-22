@@ -40,7 +40,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gradient-to-br from-white to-yellow-300">
+        <div className="min-h-screen bg-gradient-to-br from-white to-yellow-200">
           <Header />
           
           <Toaster 
