@@ -9,29 +9,28 @@ import MyRegistrations from './pages/MyRegistrations';
 import EventDetails from './pages/EventDetails';
 import AdminPanel from './pages/AdminPanel';
 import ProtectedRoute from './components/ProtectedRoute';
-import { useEffect } from 'react'; // ← ДОБАВЬ ЭТОТ ИМПОРТ
-import { useNotificationChecker } from './hooks/useNotificationChecker'; // ← ДОБАВЬ
-import { useEvents } from './hooks/useEvents'; // ← ДОБАВЬ если нужно
+import { useEffect } from 'react';
+import { useNotificationChecker } from './hooks/useNotificationChecker';
+import { useEvents } from './hooks/useEvents';
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { Toaster } from 'react-hot-toast'; // уведы
+import { Toaster } from 'react-hot-toast';
 
+// ⭐ ДОБАВЬ ИМПОРТЫ ДЛЯ ЧАТА ⭐
+import ParticipantChatPage from './pages/chat/ParticipantChatPage';
+import OrganizerChatPage from './pages/chat/OrganizerChatPage';
 
 export default function App() {
 
   const { checkNotifications, checkEventCapacity } = useNotificationChecker();
-  const { events } = useEvents(); // ← если используешь события
+  const { events } = useEvents();
 
   useEffect(() => {
-    // Проверяем уведомления при загрузке
     checkNotifications();
-    
-    // И каждые 30 секунд
     const interval = setInterval(checkNotifications, 30000);
     return () => clearInterval(interval);
   }, [checkNotifications]);
 
-  // Если есть события - проверяем заполненность
   useEffect(() => {
     if (events.length > 0) {
       checkEventCapacity(events);
@@ -44,8 +43,6 @@ export default function App() {
         <div className="min-h-screen bg-gradient-to-br from-white to-yellow-300">
           <Header />
           
-
-          {/* ↓↓↓ ДОБАВЬ ЭТОТ БЛОК ↓↓↓ */}
           <Toaster 
             position="top-right"
             toastOptions={{
@@ -99,7 +96,20 @@ export default function App() {
             
             <Route path='/events' element={<AllEvents />} />
             
-            {/* Защищенные маршруты */}
+            {/* ⭐ ДОБАВЬ МАРШРУТЫ ДЛЯ ЧАТА ⭐ */}
+            <Route path='/event/:eventId/chat' element={
+              <ProtectedRoute>
+                <ParticipantChatPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path='/organizer/chat' element={
+              <ProtectedRoute requireAdmin={true}>
+                <OrganizerChatPage />
+              </ProtectedRoute>
+            } />
+            
+            {/* Существующие защищенные маршруты */}
             <Route path='/create-event' element={
               <ProtectedRoute requireAdmin={true}>
                 <CreateEvent />

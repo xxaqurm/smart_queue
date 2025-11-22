@@ -10,12 +10,10 @@ export default function Header() {
 
   const handleCreateEventClick = (e) => {
     if (!user) {
-      // Если не авторизован - ничего не делаем, Link сам переведет на /login
       return;
     }
     
     if (user.role !== 'admin') {
-      // Если обычный пользователь - показываем сообщение и блокируем переход
       e.preventDefault();
       alert('Только организаторы могут создавать мероприятия');
     }
@@ -65,6 +63,21 @@ export default function Header() {
               Мои записи
             </Link>
             
+            {/* ⭐ КНОПКА ЧАТА ДЛЯ АДМИНА ⭐ */}
+            {user?.role === 'admin' && ( 
+              <Link to="/organizer/chat" className="font-semibold text-gray-800 hover:bg-yellow-200 transition px-4 py-2 rounded-lg outline-none flex items-center gap-1">
+                Чаты
+              </Link>
+            )}
+            
+            {/* ⭐ КНОПКА ЧАТА ДЛЯ ОБЫЧНОГО ПОЛЬЗОВАТЕЛЯ ⭐ */}
+            {user?.role === 'user' && ( 
+              <Link to="/events" className="font-semibold text-gray-800 hover:bg-yellow-200 transition px-4 py-2 rounded-lg outline-none flex items-center gap-1">
+                <span>💬</span>
+                Мои чаты
+              </Link>
+            )}
+            
             {/* Админка */}
             {user?.role === 'admin' && ( 
               <Link to="/admin" className="font-semibold text-gray-800 hover:bg-yellow-200 transition px-4 py-2 rounded-lg outline-none">
@@ -80,6 +93,9 @@ export default function Header() {
                 <span className="text-gray-700">Привет, {user.name}!</span>
                 {user?.role === 'admin' && (
                   <span className="bg-red-500 text-white px-2 py-1 rounded text-sm">ADMIN</span>
+                )}
+                {user?.role === 'user' && (
+                  <span className="bg-blue-500 text-white px-2 py-1 rounded text-sm">УЧАСТНИК</span>
                 )}
                 <button 
                   onClick={handleLogout}

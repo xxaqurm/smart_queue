@@ -1,45 +1,49 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom'; // ← ДОБАВЬ useNavigate
 import { useState, useEffect } from 'react';
 
 export default function EventDetails() {
   const { id } = useParams();
+  const navigate = useNavigate(); // ← ДОБАВЬ ЭТУ СТРОКУ
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
 
   const handleShare = (platform) => {
-  const eventUrl = `${window.location.origin}/events/${event.id}`;
-  const text = `Посмотри это мероприятие: ${event.title}`;
-  
-  const shareUrls = {
-    telegram: `https://t.me/share/url?url=${encodeURIComponent(eventUrl)}&text=${encodeURIComponent(text)}`,
-    vk: `https://vk.com/share.php?url=${encodeURIComponent(eventUrl)}&title=${encodeURIComponent(event.title)}&description=${encodeURIComponent(event.description)}`
+    const eventUrl = `${window.location.origin}/events/${event.id}`;
+    const text = `Посмотри это мероприятие: ${event.title}`;
+    
+    const shareUrls = {
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(eventUrl)}&text=${encodeURIComponent(text)}`,
+      vk: `https://vk.com/share.php?url=${encodeURIComponent(eventUrl)}&title=${encodeURIComponent(event.title)}&description=${encodeURIComponent(event.description)}`
+    };
+
+    if (shareUrls[platform]) {
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+    }
   };
 
-  if (shareUrls[platform]) {
-    window.open(shareUrls[platform], '_blank', 'width=600,height=400');
-  }
-};
+  const handleCopyLink = async () => {
+    const eventUrl = `${window.location.origin}/events/${event.id}`;
+    try {
+      await navigator.clipboard.writeText(eventUrl);
+      alert('✅ Ссылка скопирована в буфер обмена!');
+    } catch (err) {
+      const textArea = document.createElement('textarea');
+      textArea.value = eventUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('✅ Ссылка скопирована!');
+    }
+  };
 
-const handleCopyLink = async () => {
-  const eventUrl = `${window.location.origin}/events/${event.id}`;
-  try {
-    await navigator.clipboard.writeText(eventUrl);
-    alert('✅ Ссылка скопирована в буфер обмена!');
-  } catch (err) {
-    // Fallback для старых браузеров
-    const textArea = document.createElement('textarea');
-    textArea.value = eventUrl;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    alert('✅ Ссылка скопирована!');
-  }
-};
+  // ⭐ ДОБАВЬ ФУНКЦИЮ ДЛЯ ПЕРЕХОДА В ЧАТ ⭐
+  const handleOpenChat = () => {
+    navigate(`/event/${event.id}/chat`);
+  };
 
   useEffect(() => {
-    // потом заменить на API
     const mockEvents = [
       {
         id: 1,
@@ -82,7 +86,6 @@ const handleCopyLink = async () => {
   const handleRegister = async () => {
     setIsRegistering(true);
     try {
-      // Заглушка - потом заменишь на API
       setTimeout(() => {
         alert('✅ Вы успешно записались на мероприятие!');
         setIsRegistering(false);
@@ -209,7 +212,7 @@ const handleCopyLink = async () => {
                   <button
                     onClick={handleRegister}
                     disabled={isRegistering || event.participants >= event.maxParticipants}
-                    className={`w-full py-3 rounded-lg font-semibold transition ${
+                    className={`w-full py-3 rounded-lg font-semibold transition mb-3 ${
                       isRegistering 
                         ? 'bg-gray-400 cursor-not-allowed text-white'
                         : event.participants >= event.maxParticipants
@@ -224,6 +227,15 @@ const handleCopyLink = async () => {
                       : 'Записаться на мероприятие'
                     }
                   </button>
+
+                  {/* ⭐ КНОПКА ЧАТА ⭐ */}
+                  <button
+                    onClick={handleOpenChat}
+                    className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                  >
+                    <span>💬</span>
+                    Чат с организатором
+                  </button>
                 </div>
 
                 {/* Быстрые действия */}
@@ -231,20 +243,23 @@ const handleCopyLink = async () => {
                   <h4 className="text-gray-600 font-semibold mb-3">Поделиться:</h4>
                   <div className="flex gap-2">
                     <button 
-                        onClick={() => handleShare('telegram')}
-                        className="flex-1 bg-blue-500 text-white py-2 rounded text-sm hover:bg-gray-700 transition">
+                      onClick={() => handleShare('telegram')}
+                      className="flex-1 bg-blue-500 text-white py-2 rounded text-sm hover:bg-blue-600 transition"
+                    >
                       Telegram
                     </button>
                     <button 
-                        onClick={() => handleShare('vk')}
-                        className="flex-1 bg-gray-800 text-white py-2 rounded text-sm">
+                      onClick={() => handleShare('vk')}
+                      className="flex-1 bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700 transition"
+                    >
                       VK
                     </button>
                     <button
-                        onClick={handleCopyLink}
-                        className="flex-1 bg-gray-600 text-stone-200 py-2 rounded text-sm hover:bg-gray-700 transition-colors">
-                            Копировать
-                        </button>
+                      onClick={handleCopyLink}
+                      className="flex-1 bg-gray-600 text-white py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+                    >
+                      Копировать
+                    </button>
                   </div>
                 </div>
               </div>
