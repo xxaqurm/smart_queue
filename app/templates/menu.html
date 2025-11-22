@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Электронная очередь</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .auth-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .user-info {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .queue-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .queue-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .queue-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .queue-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .queue-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-paused {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .queue-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚪 Электронная очередь</h1>
+            <p>Управление очередями и регистрация участников</p>
+        </div>
+
+        <!-- Сообщения -->
+        <div id="message" class="message hidden"></div>
+
+        <!-- Аутентификация -->
+        <div id="authSection" class="auth-container">
+            <!-- Регистрация пользователя -->
+            <div class="card">
+                <h2>👤 Регистрация пользователя</h2>
+                <form id="userRegisterForm">
+                    <div class="form-group">
+                        <label for="userUsername">Логин *</label>
+                        <input type="text" id="userUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email *</label>
+                        <input type="email" id="userEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userPassword">Пароль *</label>
+                        <input type="password" id="userPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userConfirmPassword">Подтверждение пароля *</label>
+                        <input type="password" id="userConfirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                </form>
+            </div>
+
+            <!-- Регистрация создателя -->
+                       <div class="card">
+                <h2>👑 Регистрация создателя</h2>
+                <form id="ownerRegisterForm">
+                    <div class="form-group">
+                        <label for="ownerToken">Токен *</label>
+                        <input type="text" id="ownerToken" required placeholder="Введите токен из админки">
+                        <small style="color: #666; font-size: 0.9rem;">Токен можно получить в админке после создания владельца</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="ownerName">Имя *</label>
+                        <input type="text" id="ownerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ownerEmail">Email *</label>
+                        <input type="email" id="ownerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ownerPassword">Пароль *</label>
+                        <input type="password" id="ownerPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                </form>
+            </div>
+
+            <!-- Вход -->
+            <div class="card">
+                <h2>🔑 Вход в систему</h2>
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('userLogin')">Пользователь</button>
+                    <button class="tab" onclick="switchTab('ownerLogin')">Создатель</button>
+                </div>
+
+                <div id="userLogin" class="tab-content active">
+                    <form id="userLoginForm">
+                        <div class="form-group">
+                            <label for="loginUserUsername">Логин</label>
+                            <input type="text" id="loginUserUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginUserPassword">Пароль</label>
+                            <input type="password" id="loginUserPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Войти</button>
+                    </form>
+                </div>
+
+                <div id="ownerLogin" class="tab-content">
+                    <form id="ownerLoginForm">
+                        <div class="form-group">
+                            <label for="loginOwnerEmail">Email</label>
+                            <input type="email" id="loginOwnerEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginOwnerPassword">Пароль</label>
+                            <input type="password" id="loginOwnerPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Войти</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель пользователя -->
+        <div id="userPanel" class="hidden">
+            <div class="user-info">
+                <h3>Добро пожаловать, <span id="userName"></span>!</h3>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchUserTab('queuesList')">Доступные очереди</button>
+                <button class="tab" onclick="switchUserTab('myQueues')">Мои участия</button>
+            </div>
+
+            <div id="queuesList" class="tab-content active">
+                <h3>Доступные очереди</h3>
+                <div id="queuesContainer" class="queue-list">
+                    <!-- Очереди будут загружены здесь -->
+                </div>
+            </div>
+
+            <div id="myQueues" class="tab-content">
+                <h3>Мои участия в очередях</h3>
+                <div id="myQueuesContainer" class="queue-list">
+                    <!-- Участия пользователя будут здесь -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель создателя -->
+        <div id="ownerPanel" class="hidden">
+            <div class="user-info">
+                <h3>Панель создателя: <span id="ownerName"></span></h3>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchOwnerTab('manageQueue')">Управление очередью</button>
+                <button class="tab" onclick="switchOwnerTab('createQueue')">Создать очередь</button>
+            </div>
+
+            <div id="manageQueue" class="tab-content active">
+                <div id="ownerQueuesContainer">
+                    <!-- Очереди создателя будут здесь -->
+                </div>
+            </div>
+
+            <div id="createQueue" class="tab-content">
+                <div class="card">
+                    <h3>Создать новую очередь</h3>
+                    <form id="createQueueForm">
+                        <div class="form-group">
+                            <label for="queueName">Название очереди *</label>
+                            <input type="text" id="queueName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="queueCapacity">Вместимость *</label>
+                            <input type="number" id="queueCapacity" required min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="queueStartAt">Время начала (timestamp) *</label>
+                            <input type="number" id="queueStartAt" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Создать очередь</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentToken = null;
+        let currentRole = null;
+
+        // Переключение табов входа
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Переключение табов пользователя
+        function switchUserTab(tabName) {
+            document.querySelectorAll('#userPanel .tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('#userPanel .tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'queuesList') {
+                loadQueues();
+            } else if (tabName === 'myQueues') {
+                loadMyParticipations();
+            }
+        }
+
+        // Переключение табов создателя
+        function switchOwnerTab(tabName) {
+            document.querySelectorAll('#ownerPanel .tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('#ownerPanel .tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'manageQueue') {
+                loadOwnerQueues();
+            }
+        }
+
+        // Показать сообщение
+        function showMessage(text, type = 'success') {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.classList.remove('hidden');
+
+            setTimeout(() => {
+                messageEl.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Регистрация пользователя
+        document.getElementById('userRegisterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('userUsername').value;
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPassword').value;
+            const confirmPassword = document.getElementById('userConfirmPassword').value;
+
+            if (password !== confirmPassword) {
+                showMessage('Пароли не совпадают', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Регистрация успешна!');
+                    document.getElementById('userRegisterForm').reset();
+                } else {
+                    showMessage(data.error || 'Ошибка регистрации', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        });
+
+        // Регистрация создателя
+        // Регистрация создателя
+document.getElementById('ownerRegisterForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const token = document.getElementById('ownerToken').value;
+    const name = document.getElementById('ownerName').value;
+    const email = document.getElementById('ownerEmail').value;
+    const password = document.getElementById('ownerPassword').value;
+
+    try {
+        const response = await fetch('/api/auth/register_owner/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                token: token,
+                name: name,
+                email: email,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage('Регистрация создателя успешна!');
+            document.getElementById('ownerRegisterForm').reset();
+
+            // Автоматический вход после регистрации
+            currentUser = { username: email, name: name };
+            currentToken = data.token;
+            currentRole = 'owner';
+            switchToOwnerPanel();
+
+        } else {
+            showMessage(data.error || 'Ошибка регистрации', 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка сети: ' + error.message, 'error');
+    }
+});
+
+        // Вход пользователя
+        document.getElementById('userLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('loginUserUsername').value;
+            const password = document.getElementById('loginUserPassword').value;
+
+            try {
+                const response = await fetch('/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentUser = data.user;
+                    currentToken = data.token;
+                    currentRole = 'user';
+
+                    showMessage(`Добро пожаловать, ${currentUser.username}!`);
+                    switchToUserPanel();
+                    loadQueues();
+                } else {
+                    showMessage(data.error || 'Ошибка входа', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        });
+
+        // Вход создателя
+        document.getElementById('ownerLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('loginOwnerEmail').value;
+            const password = document.getElementById('loginOwnerPassword').value;
+
+            try {
+                // В реальном приложении здесь должен быть endpoint для входа создателя
+                // Сейчас используем фиктивные данные для демонстрации
+                const response = await fetch('/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: email, // Используем email как username для демо
+                        password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentUser = data.user;
+                    currentToken = data.token;
+                    currentRole = 'owner';
+
+                    showMessage(`Добро пожаловать, создатель!`);
+                    switchToOwnerPanel();
+                    loadOwnerQueues();
+                } else {
+                    showMessage('Ошибка входа создателя', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        });
+
+        // Создание очереди
+        document.getElementById('createQueueForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('queueName').value;
+            const capacity = document.getElementById('queueCapacity').value;
+            const startAt = document.getElementById('queueStartAt').value;
+
+            try {
+                const response = await fetch('/api/queues/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        name,
+                        capacity: parseInt(capacity),
+                        start_at: parseInt(startAt),
+                        fullness: 0,
+                        served_count: 0,
+                        status: 'active'
+                    })
+                });
+
+                if (response.ok) {
+                    showMessage('Очередь создана успешно!');
+                    document.getElementById('createQueueForm').reset();
+                    loadOwnerQueues();
+                } else {
+                    const data = await response.json();
+                    showMessage(data.error || 'Ошибка создания очереди', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        });
+
+        // Переключение на панель пользователя
+        function switchToUserPanel() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('userPanel').classList.remove('hidden');
+            document.getElementById('ownerPanel').classList.add('hidden');
+            document.getElementById('userName').textContent = currentUser.username;
+        }
+
+        // Переключение на панель создателя
+        function switchToOwnerPanel() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('userPanel').classList.add('hidden');
+            document.getElementById('ownerPanel').classList.remove('hidden');
+            document.getElementById('ownerName').textContent = currentUser.username;
+        }
+
+        // Загрузка очередей для пользователя
+        async function loadQueues() {
+            try {
+                const response = await fetch('/api/queues/');
+
+                if (response.ok) {
+                    const queues = await response.json();
+                    displayQueues(queues);
+                } else {
+                    showMessage('Ошибка загрузки очередей', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        }
+
+        // Отображение очередей
+        function displayQueues(queues) {
+            const container = document.getElementById('queuesContainer');
+
+            if (queues.length === 0) {
+                container.innerHTML = '<p>Нет доступных очередей</p>';
+                return;
+            }
+
+            container.innerHTML = queues.map(queue => `
+                <div class="queue-item">
+                    <div class="queue-header">
+                        <div class="queue-name">${queue.name}</div>
+                        <div class="queue-status status-${queue.status}">${queue.status === 'active' ? 'Активна' : 'Приостановлена'}</div>
+                    </div>
+                    <div class="queue-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Ожидающих</div>
+                            <div class="detail-value">${queue.current_waiting}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Обслужено</div>
+                            <div class="detail-value">${queue.served_count}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Вместимость</div>
+                            <div class="detail-value">${queue.capacity}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Заполненность</div>
+                            <div class="detail-value">${queue.fullness}%</div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary btn-small" onclick="joinQueue(${queue.id})">Присоединиться</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Присоединение к очереди
+        async function joinQueue(queueId) {
+            const name = prompt('Введите ваше имя:');
+            const email = prompt('Введите ваш email:');
+
+            if (!name || !email) {
+                showMessage('Необходимо указать имя и email', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/queues/${queueId}/join/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name,
+                        email
+                    })
+                });
+
+                if (response.ok) {
+                    showMessage('Вы успешно присоединились к очереди!');
+                    loadQueues();
+                } else {
+                    const data = await response.json();
+                    showMessage(data.error || 'Ошибка присоединения', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        }
+
+        // Загрузка участий пользователя
+        async function loadMyParticipations() {
+            try {
+                const response = await fetch('/api/participants/', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const participations = await response.json();
+                    displayMyParticipations(participations);
+                } else {
+                    showMessage('Ошибка загрузки ваших участий', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        }
+
+        // Отображение участий пользователя
+        function displayMyParticipations(participations) {
+            const container = document.getElementById('myQueuesContainer');
+
+            if (participations.length === 0) {
+                container.innerHTML = '<p>Вы не участвуете в очередях</p>';
+                return;
+            }
+
+            container.innerHTML = participations.map(part => `
+                <div class="queue-item">
+                    <div class="queue-header">
+                        <div class="queue-name">Очередь #${part.queue}</div>
+                        <div class="queue-status status-${part.status}">
+                            ${part.status === 'waiting' ? 'Ожидание' :
+                              part.status === 'served' ? 'Обслужен' : 'Отменен'}
+                        </div>
+                    </div>
+                    <div class="queue-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Позиция</div>
+                            <div class="detail-value">${part.position}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Имя</div>
+                            <div class="detail-value">${part.name}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">${part.email}</div>
+                        </div>
+                    </div>
+                    ${part.status === 'waiting' ? `
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary btn-small" onclick="cancelParticipation(${part.id})">Отменить</button>
+                    </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Отмена участия
+        async function cancelParticipation(participationId) {
+            try {
+                const response = await fetch(`/api/participants/${participationId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    showMessage('Участие отменено');
+                    loadMyParticipations();
+                } else {
+                    showMessage('Ошибка отмены участия', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        }
+
+        // Загрузка очередей создателя
+        async function loadOwnerQueues() {
+            try {
+                const response = await fetch('/api/queues/', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const queues = await response.json();
+                    displayOwnerQueues(queues);
+                } else {
+                    showMessage('Ошибка загрузки ваших очередей', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        }
+
+        // Отображение очередей создателя
+        function displayOwnerQueues(queues) {
+            const container = document.getElementById('ownerQueuesContainer');
+
+            if (queues.length === 0) {
+                container.innerHTML = '<p>У вас нет созданных очередей</p>';
+                return;
+            }
+
+            container.innerHTML = queues.map(queue => `
+                <div class="queue-item">
+                    <div class="queue-header">
+                        <div class="queue-name">${queue.name}</div>
+                        <div class="queue-status status-${queue.status}">${queue.status === 'active' ? 'Активна' : 'Приостановлена'}</div>
+                    </div>
+                    <div class="queue-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Ожидающих</div>
+                            <div class="detail-value">${queue.current_waiting}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Обслужено</div>
+                            <div class="detail-value">${queue.served_count}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Вместимость</div>
+                            <div class="detail-value">${queue.capacity}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Заполненность</div>
+                            <div class="detail-value">${queue.fullness}%</div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary btn-small" onclick="serveNext(${queue.id})">Обслужить следующего</button>
+                        <button class="btn btn-secondary btn-small" onclick="toggleQueueStatus(${queue.id}, '${queue.status}')">
+                            ${queue.status === 'active' ? 'Приостановить' : 'Возобновить'}
+                        </button>
+                    </div>
+                    ${queue.participants && queue.participants.length > 0 ? `
+                    <div style="margin-top: 15px;">
+                        <h4>Участники:</h4>
+                        ${queue.participants.map(part => `
+                            <div style="padding: 5px 0; border-bottom: 1px solid #eee;">
+                                ${part.name} (${part.email}) - Позиция: ${part.position} -
+                                <span style="color: ${part.status === 'waiting' ? 'green' : 'gray'}">
+                                    ${part.status === 'waiting' ? 'Ожидает' : 'Обслужен'}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Обслужить следующего
+        async function serveNext(queueId) {
+            try {
+                const response = await fetch(`/api/queues/${queueId}/serve_next/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    showMessage('Следующий участник обслужен');
+                    loadOwnerQueues();
+                } else {
+                    const data = await response.json();
+                    showMessage(data.error || 'Ошибка обслуживания', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        }
+
+        // Переключение статуса очереди
+        async function toggleQueueStatus(queueId, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+
+            try {
+                const response = await fetch(`/api/queues/${queueId}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+
+                if (response.ok) {
+                    showMessage(`Статус очереди изменен на "${newStatus}"`);
+                    loadOwnerQueues();
+                } else {
+                    showMessage('Ошибка изменения статуса', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сети', 'error');
+            }
+        }
+
+        // Выход
+        function logout() {
+            currentUser = null;
+            currentToken = null;
+            currentRole = null;
+
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('userPanel').classList.add('hidden');
+            document.getElementById('ownerPanel').classList.add('hidden');
+
+            // Очистка форм
+            document.querySelectorAll('form').forEach(form => form.reset());
+
+            showMessage('Вы вышли из системы');
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            // Проверяем, есть ли сохраненный токен
+            const savedToken = localStorage.getItem('token');
+            if (savedToken) {
+                // В реальном приложении здесь должна быть проверка токена
+            }
+        });
+    </script>
+</body>
+</html>
