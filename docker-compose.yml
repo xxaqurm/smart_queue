@@ -1,4 +1,14 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    command: python manage.py runserver 0.0.0.0:8000
+
   frontend:
     build:
       context: ./frontend
@@ -11,20 +21,3 @@ services:
     environment:
       - VITE_API_URL=http://localhost:8000
     command: npm run dev -- --host
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - ./data:/data
-    depends_on:
-      - database
-
-  database:
-    image: nouchka/sqlite3
-    volumes:
-      - ./data:/data

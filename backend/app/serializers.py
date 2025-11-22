@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import (User, Owner, Queue, Participant)
-
+from django.contrib.auth.hashers import make_password
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,7 +84,7 @@ class OwnerRegisterSerializer(serializers.ModelSerializer):
 
         owner.name = validated_data['name']
         owner.email = validated_data['email']
-        owner.password = validated_data['password']
+        owner.password = make_password(validated_data['password'])
         owner.is_active = True
         owner.save()
 

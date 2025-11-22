@@ -20,7 +20,7 @@ class AuthViewSet(viewsets.ViewSet):
             refresh = RefreshToken.for_user(user)
 
             return Response({
-                'token': str(refresh.access_token),
+                'access': str(refresh.access_token),
                 'refresh': str(refresh),
                 'user': UserSerializer(user).data
             })
@@ -34,7 +34,7 @@ class AuthViewSet(viewsets.ViewSet):
             refresh = RefreshToken.for_user(user)
 
             return Response({
-                'token': str(refresh.access_token),
+                'access': str(refresh.access_token),
                 'refresh': str(refresh),
                 'user': UserSerializer(user).data
             }, status=status.HTTP_201_CREATED)
@@ -100,7 +100,7 @@ class QueueViewSet(viewsets.ModelViewSet):
     serializer_class = QueueSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'join', 'status']:
+        if self.action in ['list', 'retrieve', 'join', 'status', 'participant_status', 'leave']:
             permission_classes = [AllowAny]
         else:
             permission_classes = [IsAuthenticated]
@@ -178,7 +178,7 @@ class QueueViewSet(viewsets.ModelViewSet):
             return Response({'error': 'participant_id обязателен'}, status=400)
 
         queue_system = UnifiedQueueSystem(pk)
-        status_info = get_participant_status(participant_id)
+        status_info = queue_system.get_participant_status(participant_id)
 
         if status_info:
             return Response(status_info)
