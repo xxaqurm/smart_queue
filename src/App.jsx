@@ -6,7 +6,8 @@ import CreateEvent from './pages/CreateEvent';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyRegistrations from './pages/MyRegistrations';
-import EventDetails from './pages/EventDetails'; 
+import EventDetails from './pages/EventDetails';
+import AdminPanel from './pages/AdminPanel'; // ← исправь название файла
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
@@ -36,6 +37,7 @@ export default function App() {
             <Route path='/register' element={<Register />} />
             <Route path='/my-registrations' element={<MyRegistrations />} />
             <Route path='/events/:id' element={<EventDetails />} />
+            <Route path='/admin' element={<AdminPanel />} /> {/* ← ДОБАВЬ ЭТУ СТРОЧКУ */}
           </Routes>
         </div>
       </Router>

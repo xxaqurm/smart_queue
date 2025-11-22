@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-// import { useAuth } from '../context/AuthContext'; //
+import { useAuth } from '../context/AuthContext'; 
 
 export default function Header() {
-  // const { user, logout } = useAuth(); //
+  const { user, logout } = useAuth();
 
-  // const handleLogout = () => {
-  //   logout();
-  // };
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <header className="bg-white shadow-sm">
@@ -29,13 +29,23 @@ export default function Header() {
             <Link to="/my-registrations" className="font-semibold text-gray-800 hover:bg-yellow-200 transition px-4 py-2 rounded-lg outline-none">
               Мои записи
             </Link>
+            
+            {/* Админка */}
+            {user?.role === 'admin' && ( 
+              <Link to="/admin" className="font-semibold text-gray-800 hover:bg-yellow-200 transition px-4 py-2 rounded-lg outline-none">
+                Админка
+              </Link>
+            )}
           </nav>
           
           <div className="flex gap-4">
-            {/* {user ? ( */}
-              {/* // Если пользователь залогинен */}
-              {/* <div className="flex items-center gap-4">
+            {user ? (
+              // Если пользователь залогинен
+              <div className="flex items-center gap-4">
                 <span className="text-gray-700">Привет, {user.name}!</span>
+                {user?.role === 'admin' && (
+                  <span className="bg-red-500 text-white px-2 py-1 rounded text-sm">ADMIN</span>
+                )}
                 <button 
                   onClick={handleLogout}
                   className="bg-stone-600 text-white px-6 py-2 rounded-lg hover:bg-stone-700 transition-colors font-semibold outline-none"
@@ -43,17 +53,17 @@ export default function Header() {
                   Выйти
                 </button>
               </div>
-            ) : ( */} 
-              {/* // Если пользователь не залогинен */}
+            ) : ( 
+              // Если пользователь не залогинен
               <div className="flex gap-4">
                 <Link to="/login" className="bg-stone-600 text-white px-6 py-2 rounded-lg hover:bg-stone-700 transition-colors font-semibold outline-none">
                   Войти
                 </Link>
-                <Link to="/register" className="border border-stone-400 text-stone-600 px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors font-semibold outline-none">
+                <Link to="/register" className="border border-stone-400 text-stone-600 px-6 py-2 rounded-lg hover:bg-stone-50 transition-colors font-semibold outline-none">
                   Регистрация
                 </Link>
               </div>
-            {/* )} */}
+            )}
           </div>
         </div>
       </div>

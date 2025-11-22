@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI } from '../services/api';
+// import { authAPI } from '../services/api'; // ← пока закомментируй
 
 const AuthContext = createContext();
 
@@ -23,8 +23,18 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const response = await authAPI.getProfile();
-        setUser(response.data);
+        //заменишь на authAPI.getProfile()
+        const mockUser = {
+          id: 1,
+          name: 'Администратор',
+          email: 'admin@example.com',
+          role: 'admin' //для теста админки
+        };
+        setUser(mockUser);
+        
+        //заменишь на:
+        // const response = await authAPI.getProfile();
+        // setUser(response.data);
       } catch (error) {
         localStorage.removeItem('token');
       }
@@ -33,19 +43,40 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (credentials) => {
-    const response = await authAPI.login(credentials);
-    const { token, user } = response.data;
-    localStorage.setItem('token', token);
-    setUser(user);
-    return user;
+    // ВРЕМЕННАЯ ЗАГЛУШКА
+    const mockUser = {
+      id: 1,
+      name: 'Администратор',
+      email: credentials.email,
+      role: 'admin'
+    };
+    const mockToken = 'mock-jwt-token';
+    
+    localStorage.setItem('token', mockToken);
+    setUser(mockUser);
+    return mockUser;
+    
+    //заменишь на:
+    // const response = await authAPI.login(credentials);
+    // const { token, user } = response.data;
+    // localStorage.setItem('token', token);
+    // setUser(user);
+    // return user;
   };
 
   const register = async (userData) => {
-    const response = await authAPI.register(userData);
-    const { token, user } = response.data;
-    localStorage.setItem('token', token);
-    setUser(user);
-    return user;
+    // aналогичная заглушка для регистрации
+    const mockUser = {
+      id: Date.now(),
+      name: userData.name,
+      email: userData.email,
+      role: 'user'
+    };
+    const mockToken = 'mock-jwt-token';
+    
+    localStorage.setItem('token', mockToken);
+    setUser(mockUser);
+    return mockUser;
   };
 
   const logout = () => {

@@ -95,7 +95,7 @@ export default function MyRegistrations() {
       <div className="min-h-screen bg-gradient-to-br from-white to-yellow-300 py-8">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="text-2xl">Загрузка...</div>
+            <div className="text-stone-800 text-2xl">Загрузка...</div>
           </div>
         </div>
       </div>
