@@ -39,8 +39,8 @@ export default function ParticipantChatPage() {
   };
 
   return (
-    <div className="chat-page">
-      <div className="chat-header">
+    <div className="chat-page text-stone-800">
+      <div className="chat-header text-stone-800">
         <h1>Чат мероприятия</h1>
         <p>Общайтесь с организатором</p>
       </div>

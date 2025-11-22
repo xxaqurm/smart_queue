@@ -1,25 +1,26 @@
-version: '3.8'
-
 services:
   frontend:
-    build: .
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=http://localhost:8000
     command: npm run dev -- --host
 
   backend:
-    image: node:18-alpine
-    working_dir: /app
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "8000:8000"
     volumes:
       - ./backend:/app
-    command: sh -c "cd backend && npm install && npm start"
+      - ./data:/data
     depends_on:
       - database
 
