@@ -163,6 +163,7 @@ class UnifiedQueueSystem:
                 current_serving.save()
                 self.history.append(
                     f"{timezone.now().strftime('%H:%M')} - Автоматически завершено: {current_serving.name}")
+
                 self._update_processing_time()
 
             # Берем следующего участника
@@ -173,7 +174,7 @@ class UnifiedQueueSystem:
 
             if next_participant:
                 next_participant.status = 'serving'
-                next_participant.serving_start = timezone.now()
+                next_participant.serving_start = timezone.now()  # ✅ Фиксируем время начала
                 next_participant.save()
 
                 # Обновляем счетчики
@@ -259,9 +260,8 @@ class UnifiedQueueSystem:
             time_diff = (current_time - self.queue.queue_start_time).total_seconds() / 60
 
             if self.queue.served_count > 0:
-                self.queue.avg_processing_time = time_diff / self.queue.served_count
-                if self.queue.avg_processing_time <= 0:
-                    self.queue.avg_processing_time = 1
+                new_avg = time_diff / self.queue.served_count
+                self.queue.avg_processing_time = max(0.5, new_avg)
                 self.queue.save()
 
     def _update_all_positions(self):
