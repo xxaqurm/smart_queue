@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 from .serializers import *
+from .services.unified_queue import UnifiedQueueSystem
+
 
 
 class AuthViewSet(viewsets.ViewSet):
@@ -98,80 +100,103 @@ class QueueViewSet(viewsets.ModelViewSet):
     serializer_class = QueueSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'join', 'status']:
             permission_classes = [AllowAny]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])  # ← Требуем аутентификацию
+    @action(detail=True, methods=['post'])
     def join(self, request, pk=None):
+        """Присоединиться к очереди"""
         queue = self.get_object()
 
-        # Проверяем, что очередь активна
         if queue.status != 'active':
             return Response(
                 {'error': 'Очередь неактивна. Присоединение невозможно.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        name = request.user.username 
+        name = request.user.username if request.user.is_authenticated else request.data.get('name', 'Гость')
+        email = request.user.email if request.user.is_authenticated else request.data.get('email')
 
-        email = request.user.email
-
-        print(f"=== JOIN QUEUE ===")
-        print(f"User: {request.user.username}")
-        print(f"Auto name: {name}, Auto email: {email}")
-
-        # Проверяем, не зарегистрирован ли уже пользователь
-        if Participant.objects.filter(queue=queue, email=email).exists():
+        if not email:
             return Response(
-                {'error': 'Вы уже в этой очереди'},
+                {'error': 'Email обязателен для участия в очереди'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Определяем позицию - учитываем только waiting
-        last_position = Participant.objects.filter(
-            queue=queue,
-            status='waiting'
-        ).order_by('-position').first()
-        new_position = last_position.position + 1 if last_position else 1
+        queue_system = UnifiedQueueSystem(pk)
+        result, created = queue_system.join_queue(name, email,
+                                                  request.user.id if request.user.is_authenticated else None)
 
-        print(f"New position: {new_position}")
+        if created:
+            return Response({
+                'success': True,
+                'queue_id': result['id'],
+                'position': result['position'],
+                'estimated_wait_minutes': result['estimated_wait'],
+                'message': f'Вы в очереди! Позиция: {result["position"]}'
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                'error': 'Вы уже в этой очереди',
+                'current_position': result['position']
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        participant = Participant.objects.create(
-            queue=queue,
-            name=name,
-            email=email,
-            position=new_position
-        )
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def serve_next(self, request, pk=None):
+        """Обслужить следующего участника"""
+        queue_system = UnifiedQueueSystem(pk)
+        next_participant = queue_system.serve_next()
 
-        serializer = ParticipantSerializer(participant)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if next_participant:
+            return Response({
+                'success': True,
+                'participant': next_participant,
+                'message': f'Начато обслуживание: {next_participant["name"]}'
+            })
+        else:
+            return Response({
+                'success': True,
+                'message': 'Очередь пуста',
+                'participant': None
+            })
+
+    @action(detail=True, methods=['get'])
+    def status(self, request, pk=None):
+        """Получить полный статус очереди"""
+        queue_system = UnifiedQueueSystem(pk)
+        queue_info = queue_system.get_queue_info()
+        return Response(queue_info)
+
+    @action(detail=True, methods=['get'])
+    def participant_status(self, request, pk=None):
+        """Статус конкретного участника"""
+        participant_id = request.query_params.get('participant_id')
+        if not participant_id:
+            return Response({'error': 'participant_id обязателен'}, status=400)
+
+        queue_system = UnifiedQueueSystem(pk)
+        status_info = get_participant_status(participant_id)
+
+        if status_info:
+            return Response(status_info)
+        else:
+            return Response({'error': 'Участник не найден'}, status=404)
 
     @action(detail=True, methods=['post'])
-    def serve_next(self, request, pk=None):
-        queue = self.get_object()
+    def leave(self, request, pk=None):
+        """Покинуть очередь"""
+        participant_id = request.data.get('participant_id')
+        if not participant_id:
+            return Response({'error': 'participant_id обязателен'}, status=400)
 
-        next_participant = Participant.objects.filter(
-            queue=queue,
-            status='waiting'
-        ).order_by('position').first()
-
-        if not next_participant:
-            return Response(
-                {'error': 'Нет ожидающих участников'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        next_participant.status = 'served'
-        next_participant.save()
-
-        queue.served_count += 1
-        queue.save()
-
-        serializer = ParticipantSerializer(next_participant)
-        return Response(serializer.data)
+        queue_system = UnifiedQueueSystem(pk)
+        if queue_system.leave_queue(participant_id):
+            return Response({'success': True, 'message': 'Вы вышли из очереди'})
+        else:
+            return Response({'error': 'Участник не найден'}, status=404)
 
 
 class ParticipantViewSet(viewsets.ModelViewSet):
@@ -179,22 +204,22 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Фильтруем по email текущего пользователя
         return Participant.objects.filter(email=self.request.user.email)
 
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         participant = self.get_object()
-        # Проверяем, что пользователь отменяет свое участие
         if participant.email != request.user.email:
             return Response(
                 {'error': 'Вы можете отменять только свои участия'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        participant.status = 'cancelled'
-        participant.save()
-        return Response({'status': 'cancelled'})
 
+        queue_system = UnifiedQueueSystem(participant.queue.id)
+        if queue_system.leave_queue(participant.participant_id):
+            return Response({'status': 'cancelled'})
+        else:
+            return Response({'error': 'Ошибка при отмене'}, status=400)
 
 class OwnerViewSet(viewsets.ModelViewSet):
     queryset = Owner.objects.all()

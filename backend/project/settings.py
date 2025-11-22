@@ -99,7 +99,3 @@ SIMPLE_JWT = {
 
 # Custom user model
 AUTH_USER_MODEL = 'app.User'
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]

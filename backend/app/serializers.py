@@ -1,4 +1,3 @@
-from time import timezone
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import (User, Owner, Queue, Participant)
@@ -92,40 +91,40 @@ class OwnerRegisterSerializer(serializers.ModelSerializer):
         return owner
 
 class ParticipantSerializer(serializers.ModelSerializer):
+    queue_name = serializers.CharField(source='queue.name', read_only=True)
+    estimated_wait_minutes = serializers.IntegerField(source='estimated_wait', read_only=True)
+
     class Meta:
         model = Participant
         fields = '__all__'
-
+        read_only_fields = ['position', 'joined_at', 'participant_id', 'estimated_wait']
 
 class QueueSerializer(serializers.ModelSerializer):
     participants = ParticipantSerializer(many=True, read_only=True)
     owner = OwnerSerializer(read_only=True)
     current_waiting = serializers.SerializerMethodField()
-    start_at = serializers.IntegerField(read_only=True)  # ← Только для чтения
+    start_at = serializers.IntegerField(read_only=True)
+
+    # Новые поля
+    estimated_wait_display = serializers.SerializerMethodField()
+    is_active = serializers.BooleanField(source='status', read_only=True)
 
     class Meta:
         model = Queue
         fields = '__all__'
-        read_only_fields = ['start_at']  # ← start_at нельзя устанавливать через API
+        read_only_fields = ['start_at', 'served_count', 'fullness']
 
     def get_current_waiting(self, obj):
-        try:
-            return obj.participants.filter(status='waiting').count()
-        except:
-            return 0
+        return obj.participants.filter(status='waiting').count()
 
-    def create(self, validated_data):
-        # Создаем очередь с статусом paused по умолчанию
-        validated_data.setdefault('status', 'paused')
+    def get_estimated_wait_display(self, obj):
+        waiting = obj.participants.filter(status='waiting').order_by('position')
+        if not waiting:
+            return "0 мин"
 
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            try:
-                owner = Owner.objects.get(email=request.user.email)
-                if hasattr(owner, 'queue'):
-                    raise serializers.ValidationError('У вас уже есть очередь')
-                validated_data['owner'] = owner
-            except Owner.DoesNotExist:
-                raise serializers.ValidationError('Владелец не найден')
+        first_wait = waiting[0].estimated_wait
+        last_wait = waiting[len(waiting) - 1].estimated_wait
 
-        return super().create(validated_data)
+        if first_wait == last_wait or len(waiting) == 1:
+            return f"{first_wait} мин"
+        return f"{first_wait}-{last_wait} мин"
