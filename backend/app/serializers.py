@@ -1,3 +1,4 @@
+from time import timezone
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import (User, Owner, Queue, Participant)
@@ -100,10 +101,31 @@ class QueueSerializer(serializers.ModelSerializer):
     participants = ParticipantSerializer(many=True, read_only=True)
     owner = OwnerSerializer(read_only=True)
     current_waiting = serializers.SerializerMethodField()
+    start_at = serializers.IntegerField(read_only=True)  # ← Только для чтения
 
     class Meta:
         model = Queue
         fields = '__all__'
+        read_only_fields = ['start_at']  # ← start_at нельзя устанавливать через API
 
     def get_current_waiting(self, obj):
-        return obj.participants.filter(status='waiting').count()
+        try:
+            return obj.participants.filter(status='waiting').count()
+        except:
+            return 0
+
+    def create(self, validated_data):
+        # Создаем очередь с статусом paused по умолчанию
+        validated_data.setdefault('status', 'paused')
+
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            try:
+                owner = Owner.objects.get(email=request.user.email)
+                if hasattr(owner, 'queue'):
+                    raise serializers.ValidationError('У вас уже есть очередь')
+                validated_data['owner'] = owner
+            except Owner.DoesNotExist:
+                raise serializers.ValidationError('Владелец не найден')
+
+        return super().create(validated_data)

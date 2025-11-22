@@ -45,15 +45,53 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def register_owner(self, request):
+        print("=== OWNER REGISTRATION ===")
+        print("Request data:", request.data)
+
         serializer = OwnerRegisterSerializer(data=request.data)
         if serializer.is_valid():
             owner = serializer.save()
-            return Response({
-                'message': 'Регистрация успешна',
-                'token': str(owner.token),
-                'owner': OwnerSerializer(owner).data
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            print(f"Owner saved: {owner.email}, {owner.name}")
+
+            # СОЗДАЕМ ПОЛЬЗОВАТЕЛЯ ДЛЯ АУТЕНТИФИКАЦИИ
+            try:
+                # Используем email как username (упрощенный вариант)
+                username = owner.email
+
+                # Проверяем, не существует ли уже пользователь
+                if User.objects.filter(username=username).exists():
+                    user = User.objects.get(username=username)
+                    print(f"User already exists: {user.username}")
+                else:
+                    # Создаем нового пользователя
+                    user = User.objects.create_user(
+                        username=username,
+                        email=owner.email,
+                        password=owner.password
+                    )
+                    print(f"User created: {user.username}")
+
+                # ВЫДАЕМ JWT ТОКЕН
+                refresh = RefreshToken.for_user(user)
+                print("JWT token generated")
+
+                return Response({
+                    'message': 'Регистрация успешна',
+                    'token': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'owner': OwnerSerializer(owner).data,
+                    'user': UserSerializer(user).data
+                }, status=status.HTTP_201_CREATED)
+
+            except Exception as e:
+                print(f"Error creating user: {str(e)}")
+                return Response(
+                    {'error': f'Ошибка создания пользователя: {str(e)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            print("Serializer errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class QueueViewSet(viewsets.ModelViewSet):
     queryset = Queue.objects.all().order_by('-start_at')
@@ -66,17 +104,24 @@ class QueueViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])  # ← Требуем аутентификацию
     def join(self, request, pk=None):
         queue = self.get_object()
-        name = request.data.get('name')
-        email = request.data.get('email')
 
-        if not name or not email:
+        # Проверяем, что очередь активна
+        if queue.status != 'active':
             return Response(
-                {'error': 'Name and email are required'},
+                {'error': 'Очередь неактивна. Присоединение невозможно.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        name = request.user.username 
+
+        email = request.user.email
+
+        print(f"=== JOIN QUEUE ===")
+        print(f"User: {request.user.username}")
+        print(f"Auto name: {name}, Auto email: {email}")
 
         # Проверяем, не зарегистрирован ли уже пользователь
         if Participant.objects.filter(queue=queue, email=email).exists():
@@ -85,12 +130,14 @@ class QueueViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Определяем позицию - ИСПРАВЛЕНИЕ: учитываем только waiting
+        # Определяем позицию - учитываем только waiting
         last_position = Participant.objects.filter(
             queue=queue,
             status='waiting'
         ).order_by('-position').first()
         new_position = last_position.position + 1 if last_position else 1
+
+        print(f"New position: {new_position}")
 
         participant = Participant.objects.create(
             queue=queue,

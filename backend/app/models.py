@@ -1,4 +1,6 @@
+import time
 import uuid
+from time import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -34,16 +36,23 @@ class Queue(models.Model):
 
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='paused')  # ← По умолчанию paused
     served_count = models.IntegerField(default=0)
-    start_at = models.IntegerField()
-    fullness = models.IntegerField()
+    start_at = models.IntegerField(null=True, blank=True)  # ← NULL пока не активна
+    fullness = models.IntegerField(default=0)
     capacity = models.IntegerField()
     owner = models.OneToOneField(Owner, on_delete=models.CASCADE, related_name='queue')
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if self.status == 'active' and self.start_at is None:
+            self.start_at = int(time.time())
+        elif self.status != 'active' and self.start_at is not None:
+            self.start_at = None
+            pass
+        super().save(*args, **kwargs)
 
 class Participant(models.Model):
     STATUS_CHOICES = [
@@ -53,11 +62,11 @@ class Participant(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
-    queue = models.OneToOneField(Queue, on_delete=models.CASCADE, related_name='participants')
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, related_name='participants')
     name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    email = models.EmailField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting')
-    position = models.IntegerField(unique=True)
+    position = models.IntegerField()
 
     class Meta:
         unique_together = ['queue', 'email']
